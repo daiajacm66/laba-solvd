@@ -1,0 +1,1 @@
+File: article.txt | Special words (>7 letters): 11
