@@ -6,6 +6,9 @@ import com.solvd.university.exceptions.PrerequisiteNotMetException;
 import com.solvd.university.exceptions.InvalidGradeException;
 
 
+import com.solvd.university.interfaces.functional.Action;
+import com.solvd.university.interfaces.functional.CourseFilter;
+import com.solvd.university.interfaces.functional.GradeEvaluator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import com.solvd.university.generics.EvaluationResult;
@@ -87,28 +90,32 @@ public class Main {
         logger.info("Career: " + systems.getName());
         logger.info("Courses in program:");
 
-        for (Course c : engineering.getCourses()) {
-            logger.info("\t- " + c.getName() + " (Professor: " + c.getProfessor().getName() + ")");
-        }
+        engineering.getCourses()
+                .stream()
+                .forEach(c -> logger.info(
+                        "\t- " + c.getName() + " (Professor: " + c.getProfessor().getName() + ")"
+                ));
 
         logger.info("\nStudent: " + student.getName());
         logger.info("Passed courses:");
-        for (Grade g : student.getGrades()) {
-            if (g.getValue() >= 6) {
-                logger.info("\t- " + g.getCourse().getName());
-            }
-        }
+        student.getGrades()
+                .stream()
+                .filter(g -> g.getValue() >= 6)
+                .forEach(g -> logger.info(g.getCourse().getName()));
 
 
         logger.info("\n\nEnrollment simulation:");
-        for (Course c : engineering.getCourses()) {
-            try {
-                student.enroll(c);
-                logger.info("Enrolled in: " + c.getName());
-            } catch (PrerequisiteNotMetException e) {
-                logger.error(e.getMessage());
-            }
-        }
+        engineering.getCourses()
+                .stream()
+                .forEach(c -> {
+                    try {
+                        student.enroll(c);
+                        logger.info("Enrolled in: " + c.getName());
+                    } catch (PrerequisiteNotMetException e) {
+                        logger.error(e.getMessage());
+                    }
+                });
+
         logger.info("Passed courses: " + student.countPassedCourses());
         if (student.canAdvance()) {
             logger.info("Student can advance to next year!");
@@ -191,6 +198,37 @@ public class Main {
         } catch (Exception e) {
             logger.error("Error processing file: " + e.getMessage());
         }
+
+        //Add lambda and streams
+        CourseFilter difficultCourses = c -> c.getName().length() > 15;
+        CourseFilter dataCourses = c -> c.getName().contains("Data");
+        GradeEvaluator passedGrades = g -> g.getValue() >= 6;
+        Action<Course> printCourse = c -> logger.info("Course: " + c.getName());
+
+        logger.info("\nDifficult courses (name length > 15):");
+        engineering.getCourses()
+                .stream()
+                .filter(difficultCourses::test)
+                .map(Course::getName)
+                .forEach(logger::info);
+
+        logger.info("\nCourses containing 'Data':");
+        engineering.getCourses()
+                .stream()
+                .filter(dataCourses::test)
+                .map(Course::getName)
+                .forEach(logger::info);
+
+        logger.info("\nPassed courses:");
+        student.getGrades()
+                .stream()
+                .filter(passedGrades::evaluate)
+                .map(g -> g.getCourse().getName())
+                .forEach(logger::info);
+
+        logger.info("\nAll courses:");
+        engineering.getCourses()
+                .forEach(printCourse::execute);
 
     }
 }

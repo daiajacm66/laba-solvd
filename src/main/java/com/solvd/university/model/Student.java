@@ -69,16 +69,12 @@ public class Student extends Person implements Enrollable, PrerequisiteCheckable
 
     // COUNT PASSED COURSES
     public int countPassedCourses() {
-        int count = 0;
-        for (Grade g : grades) {
-            if (g.getValue() >= 6) {
-                count++;
-            }
-        }
-        return count;
+        return (int) grades.stream()
+                .filter(g -> g.getValue() >= 6)
+                .count();
     }
 
-    // CHECK IF CAN ADVANCE
+    // CHECK if CAN ADVANCE
     public boolean canAdvance() {
         return countPassedCourses() >= 3; // simple rule for demo
     }
