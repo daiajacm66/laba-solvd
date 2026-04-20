@@ -9,6 +9,7 @@ import com.solvd.university.exceptions.InvalidGradeException;
 import com.solvd.university.interfaces.functional.Action;
 import com.solvd.university.interfaces.functional.CourseFilter;
 import com.solvd.university.interfaces.functional.GradeEvaluator;
+import com.solvd.university.utils.ReflectionUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import com.solvd.university.generics.EvaluationResult;
@@ -67,8 +68,8 @@ public class Main {
         engineering.getCourses().add(statistics);
 
         // EXAMS
-        Exam exam1 = new Exam(1, "2024-12-10");
-        Exam exam2 = new Exam(2, "2024-12-15");
+        Exam exam1 = new Exam(1, new Year(2025), new Semester(2), "12-10");
+        Exam exam2 = new Exam(2, new Year(2024), new Semester(2), "11-28");
 
         algorithms.getExams().add(exam1);
         analysis.getExams().add(exam2);
@@ -125,7 +126,7 @@ public class Main {
 
         logger.info("\nPolymorphism example:");
 
-        Evaluation e1 = new Exam(10, "2025-03-10");
+        Evaluation e1 = new Exam(10, new Year(2024), new Semester(1), "03-10");
         Evaluation e2 = new Grade(11, 9, algorithms);
 
         logger.info(e1.getDescription());
@@ -134,7 +135,7 @@ public class Main {
         // LAST ADD
         logger.info("\nInterface polymorphism:");
 
-        Describable d1 = new Exam(20, "2025-05-10");
+        Describable d1 = new Exam(20, new Year(2025), new Semester(1), "05-10");
         Describable d2 = new Grade(21, 10, algebra);
 
         logger.info(d1.getDescription());
@@ -160,7 +161,7 @@ public class Main {
         }
 
         List<Describable> evaluations = new ArrayList<>();
-        evaluations.add(new Exam(1, "2025-01-01"));
+        evaluations.add(new Exam(1,new Year(2026), new Semester(1), "01-01"));
         evaluations.add(new Grade(2, 8, algorithms));
 
         for (Describable d : evaluations) {
@@ -183,7 +184,7 @@ public class Main {
         }
 
         Pair<Course, Integer> pair = new Pair<>(algebra, 10);
-        logger.info("Pair -> " + pair.getKey().getName() + ": " + pair.getValue());
+        logger.info("Pair -> " + pair.key().getName() + ": " + pair.value());
 
         EvaluationResult<String> result = new EvaluationResult<>("Passed");
         logger.info("Evaluation result: " + result.getResult());
@@ -229,6 +230,10 @@ public class Main {
         logger.info("\nAll courses:");
         engineering.getCourses()
                 .forEach(printCourse::execute);
+
+        //Reflections
+        System.out.println("\n--- Reflection Output ---");
+        ReflectionUtil.printObject(student);
 
     }
 }

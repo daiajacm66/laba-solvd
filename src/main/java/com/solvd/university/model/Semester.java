@@ -1,17 +1,9 @@
 package com.solvd.university.model;
-public class Semester {
+public record Semester(int semesterNumber) {
 
-    private int semesterNumber;
-
-    public Semester(int semesterNumber) {
-        this.semesterNumber = semesterNumber;
-    }
-
-    public int getSemesterNumber() {
-        return semesterNumber;
-    }
-
-    public void setSemesterNumber(int semesterNumber) {
-        this.semesterNumber = semesterNumber;
+    public Semester {
+        if (semesterNumber < 1 || semesterNumber > 2) {
+            throw new IllegalArgumentException("Invalid semester");
+        }
     }
 }

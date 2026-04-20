@@ -13,13 +13,20 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Stack;
+import com.solvd.university.annotations.Display;
+import com.solvd.university.annotations.Sensitive;
 
 public class Student extends Person implements Enrollable, PrerequisiteCheckable, Gradable {
     private static final Logger logger = LogManager.getLogger(Student.class);
+    @Display("Enrolled Courses")
     private final List<Course> enrolledCourses;
+    @Display("Grades")
     private final List<Grade> grades;
+    @Display("Passed Courses")
     private Set<Course> passedCourses = new HashSet<>();
+    @Sensitive
     private final Map<Course, Integer> courseGrades;
+    @Display("Actions History")
     private Stack<String> actionsHistory = new Stack<>();
 
     public Student(int id, String name) {

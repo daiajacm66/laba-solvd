@@ -1,13 +1,9 @@
 package com.solvd.university.model;
-public class Year {
+public record Year(int yearNumber) {
 
-    private int yearNumber;
-
-    public Year(int yearNumber) {
-        this.yearNumber = yearNumber;
-    }
-
-    public int getYearNumber() {
-        return yearNumber;
+    public Year {
+        if (yearNumber < 1900) {
+            throw new IllegalArgumentException("Invalid year");
+        }
     }
 }
