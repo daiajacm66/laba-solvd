@@ -2,6 +2,11 @@ package com.solvd.university;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
 import com.solvd.university.exceptions.PrerequisiteNotMetException;
 import com.solvd.university.exceptions.InvalidGradeException;
 
@@ -9,7 +14,7 @@ import com.solvd.university.exceptions.InvalidGradeException;
 import com.solvd.university.interfaces.functional.Action;
 import com.solvd.university.interfaces.functional.CourseFilter;
 import com.solvd.university.interfaces.functional.GradeEvaluator;
-import com.solvd.university.utils.ReflectionUtil;
+import com.solvd.university.utils.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import com.solvd.university.generics.EvaluationResult;
@@ -17,7 +22,6 @@ import com.solvd.university.generics.Pair;
 import com.solvd.university.generics.Repository;
 import com.solvd.university.interfaces.Describable;
 import com.solvd.university.model.*;
-import com.solvd.university.utils.FileWordCounter;
 
 public class Main {
     private static final Logger logger = LogManager.getLogger(Main.class);
@@ -232,8 +236,95 @@ public class Main {
                 .forEach(printCourse::execute);
 
         //Reflections
-        System.out.println("\n--- Reflection Output ---");
+        System.out.println("\nReflection Output");
         ReflectionUtil.printObject(student);
+
+        //Threads
+        System.out.println("\nThreads");
+        Threading thread1 = new Threading();
+        Runnable task = new MyRunnable();
+        Thread thread2 = new Thread(task);
+        thread1.start();
+        thread2.start();
+        try {
+            thread1.join();
+            thread2.join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.out.println("Threads interrupted");
+        }
+
+        //Connection pool
+        System.out.println("\nConnection Pool");
+        ConnectionPool pool = ConnectionPool.getInstance();
+        ExecutorService executor = Executors.newFixedThreadPool(7);
+
+        for (int i = 1; i <= 7; i++) {
+            final int id = i;
+            executor.submit(() -> {
+                MockConnection connection = null;
+                try {
+                    System.out.println("Task " + id + " waiting...");
+                    connection = pool.acquire();
+                    System.out.println("Task " + id + " got connection " + connection.getId());
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    System.out.println("Task " + id + " interrupted");
+                } finally {
+                    if (connection != null) {
+                        pool.release(connection);
+                        System.out.println("Task " + id + " released connection");
+                    }
+                }
+            });
+        }
+        executor.shutdown();
+        try {
+            executor.awaitTermination(1, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.out.println("Executor interrupted");
+        }
+
+
+        //Future
+        System.out.println("\nCompletableFuture");
+        ExecutorService executorCF = Executors.newFixedThreadPool(7);
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+        for (int i = 1; i <= 7; i++) {
+            final int id = i;
+            CompletableFuture<Void> future =
+                    CompletableFuture.supplyAsync(() -> {
+                                try {
+                                    System.out.println("CF Task " + id + " waiting...");
+                                    MockConnection connection = pool.acquire();
+
+                                    System.out.println("CF Task " + id + " got connection " + connection.getId());
+                                    Thread.sleep(1000);
+                                    return connection;
+
+                                } catch (InterruptedException e) {
+                                    Thread.currentThread().interrupt();
+                                    throw new RuntimeException("Interrupted", e);
+                                }
+                            }, executorCF)
+                            .thenAccept(connection -> {
+                                pool.release(connection);
+                                System.out.println("CF Task " + id + " released connection");
+                            });
+            futures.add(future);
+        }
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        executorCF.shutdown();
+        try {
+            executorCF.awaitTermination(1, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.out.println("ExecutorCF interrupted");
+        }
+
 
     }
 }
