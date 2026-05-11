@@ -22,5 +22,7 @@ The main goal of this repository is to demonstrate the understanding of differen
 - Threads, connection pools, futures, and multithreading  
 
 ### Block 2 – Data base
-- Database design and schemas using MySQL  
+- Database design and schemas using MySQL.
+- Database CRUD operations. SQLs, DDL.
+- JDBC. DAO classes. MVC.
 
